@@ -12,8 +12,11 @@
         $(document).ready(function() {
           let latlon = [35.681236, 139.767125];
           var map = L.map('map').setView(latlon, 13);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          let attr1 = '国土地理院';
+          let attr2 = '国土数値情報　駅別乗降客数データ';
+          let attr3 = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+          L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+              attribution: [attr1, attr2].join(' | '),
           }).addTo(map);
           var marker = L.marker(latlon).addTo(map);
           
