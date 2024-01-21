@@ -2,19 +2,23 @@
 <html>
 <head>
     <title>API結果表示</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
             $("#submitButton").click(function() {
                 let stationListStr = $("#stationListStr").val();
                 if (stationListStr) {
+                  $('#loading').show();
                     $.get(
                       "https://us-central1-awesome-terra-234810.cloudfunctions.net/hello_http/", 
                       { station_list_str: stationListStr },
                       function(data) {
                         $("#result").text("station_name: " + data.station_name.toUpperCase());
                       }
-                    );
+                    ).always(function() {
+                      $('#loading').hide();
+                    });
                 }
             });
         });
@@ -26,5 +30,6 @@
     <input type="textbox" id="stationListStr" style="width: 300px;">
     <button id="submitButton">Submit</button>
     <div id="result"></div>
+    <div id="loading" style="display: none;">Loading...</div>
 </body>
 </html>
