@@ -32,7 +32,7 @@ def find_center_station(station_list_str: str, in_tokyo: bool =True) -> dict:
         center_wkt=hiningen_center.wkt,
         center_4612_wkt=Point(transformed_longitude, transformed_latitude).wkt,
         station_name=stations.loc[stations.distance(hiningen_center).idxmin()].N02_005,
-        stations_geojson=hiningen_stations.to_json()
+        stations_geojson=hiningen_stations.to_crs(4612).to_json()
     )
 
 def drop_duplicate_station(gdf):
