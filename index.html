@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>API結果表示</title>
+    <title>待ち合わせに最適な駅</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -25,11 +25,14 @@
     </script>
 </head>
 <body>
-    <h1>API結果表示</h1>
-    <label for="stationListStr">station_list_str:</label>
+    <h1>集合場所の駅を検討する</h1>
+    <label for="stationListStr">駅名を「,」「、」か半角空白、全角空白で区切って複数入力してください</label>
     <input type="textbox" id="stationListStr" style="width: 300px;">
     <button id="submitButton">Submit</button>
     <div id="result"></div>
     <div id="loading" style="display: none;">Loading...</div>
+    <div>おことわり：このツールはサーバー側にデータを送信しますが、そこでのデータの蓄積など、処理以外でのデータ利用は一切行っていません。</div>
+    <div>結果は東京周辺に適合する座標系で導き出すため、関東圏以外では若干不正確になります</div>
+    <div>駅データは国土数値情報を使用しています</div>
 </body>
 </html>
