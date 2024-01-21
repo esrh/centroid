@@ -4,23 +4,65 @@
     <title>待ち合わせに最適な駅</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/terraformer@1.0.12/terraformer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/terraformer-wkt-parser@1.2.1/terraformer-wkt-parser.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         $(document).ready(function() {
-            $("#submitButton").click(function() {
-                let stationListStr = $("#stationListStr").val();
-                if (stationListStr) {
-                  $('#loading').show();
-                    $.get(
-                      "https://us-central1-awesome-terra-234810.cloudfunctions.net/hello_http/", 
-                      { station_list_str: stationListStr },
-                      function(data) {
-                        $("#result").text("station_name: " + data.station_name.toUpperCase());
-                      }
-                    ).always(function() {
-                      $('#loading').hide();
-                    });
+          let latlon = [35.681236, 139.767125];
+          var map = L.map('map').setView(latlon, 13);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(map);
+          var marker = L.marker(latlon).addTo(map);
+          
+          $("#submitButton").click(function() {
+            let stationListStr = $("#stationListStr").val();
+            if (stationListStr) {
+              $('#loading').show();
+              let currentHostname = window.location.hostname;
+              let apiUrl = '';
+              if (
+                currentHostname === 'localhost' || 
+                currentHostname === '127.0.0.1' ||
+                currentHostname.startsWith('192.168.')
+              ) {
+                apiUrl = 'http://localhost:5000';
+              } else {
+                apiUrl = "https://us-central1-awesome-terra-234810.cloudfunctions.net/hello_http/";
+              }
+              $.get(
+                apiUrl,
+                { station_list_str: stationListStr },
+                function(data) {
+                  $("#result").text("station_name: " + data.station_name.toUpperCase());
+                  let wktGeometry = Terraformer.WKT.parse(data.center_4612_wkt);
+                  let latlng = [wktGeometry.coordinates[1], wktGeometry.coordinates[0]];
+                  marker.setLatLng(latlng).update();
+                  map.setView(latlng, 13); // マーカーの位置に地図を移動
                 }
-            });
+              ).always(function() {
+                $('#loading').hide();
+              }).fail(function() {
+                $("#result").text("エラーが発生しました。");
+              });
+            }
+          });
+
+          $("#debug-1").click(function() {
+            event.preventDefault();
+            $("#stationListStr").val("川崎、浦和");
+            $("#submitButton").click();
+          });
+
+          $("#stationListStr").keydown(function(event) {
+            if (event.keyCode == 13) { // 13はEnterキーのキーコード
+              event.preventDefault(); // フォームの自動送信を防ぐ
+              $("#submitButton").click(); // 送信ボタンのクリックイベントをトリガー
+            }
+          });
+
         });
     </script>
 </head>
@@ -28,10 +70,13 @@
     <h1>集合場所の駅を検討する</h1>
     <label for="stationListStr">駅名を「,」「、」か半角空白、全角空白で区切って複数入力してください</label>
     <br>
-    <input type="textbox" id="stationListStr" style="width: 300px;">
+    <a href="" id="debug-1">例：川崎、浦和</a>
+    <br>
+    <input type="textbox" id="stationListStr" style="width: 70%;">
     <button id="submitButton">Submit</button>
     <div id="result"></div>
     <div id="loading" style="display: none;">Loading...</div>
+    <div id="map" style="width: 100%; height: 40vh;"></div>
     <div>おことわり：このツールはサーバー側にデータを送信しますが、そこでのデータの蓄積など、処理以外でのデータ利用は一切行っていません。</div>
     <div>結果は東京周辺に適合する座標系で導き出すため、関東圏以外では若干不正確になります</div>
     <div>駅データは国土数値情報を使用しています</div>

@@ -5,10 +5,16 @@ import functions_framework
 import stationapi
 
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True  # テンプレートの自動リロードを有効にする
+app.template_folder = '.'  # 新しいテンプレートフォルダのパスを設定
 
 @app.route('/')
 def index():
     return hello_http(request)
+
+@app.route('/testpage/')
+def testpage():
+    return render_template('index.html')
 
 @functions_framework.http
 def hello_http(request):
@@ -23,10 +29,15 @@ def hello_http(request):
     res_dict = dict(
         testmsg=f"Hello {escape(name)}!"
     )
-    station_list_str = request.args.get('station_list_str', default = '立川、新宿', type = str)
-    res_dict.update(stationapi.find_center_station(station_list_str))
+    res_dict.update(stationapi.find_center_station(
+        request.args.get('station_list_str', default = '立川、新宿', type = str),
+        request.args.get('in_tokyo', default = True, type = bool)
+    ))
     response = jsonify(res_dict)
     response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add("Cache-Control", "no-cache, no-store, must-revalidate")
+    response.headers.add("Pragma", "no-cache")
+    response.headers.add("Expires", "0")
     return response
 
 if __name__ == '__main__':

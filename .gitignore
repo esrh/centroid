@@ -3,4 +3,5 @@
 /__pycache__
 settings.py
 *.ipynb
-stations.geojson
+*.geojson
+ff-test.py
