@@ -1,95 +1,109 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>待ち合わせに最適な駅</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/terraformer@1.0.12/terraformer.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/terraformer-wkt-parser@1.2.1/terraformer-wkt-parser.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script>
-        var geoJsonLayer = null;
-        $(document).ready(function() {
-          function addStations(map, geoJsonString) {
-            let blueIcon = L.divIcon({
-              className: 'custom-blue-icon', // カスタムクラス名
-              html: '<div style="background-color: blue; width: 12px; height: 12px; border-radius: 50%; position: relative; left: -6px; top: -6px;"></div>', // 円形のHTML要素
-              iconSize: [12, 12],
-              iconAnchor: [6, 6]
-            });
-            let layer = L.geoJSON(JSON.parse(geoJsonString), {
-              pointToLayer: function(feature, latlng) {
-                return L.marker(latlng, { icon: blueIcon });
-              }
-            })
-            layer.addTo(map);
-            map.fitBounds(layer.getBounds());
-            return layer;
-          }
+  <title>待ち合わせに最適な駅</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/terraformer@1.0.12/terraformer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/terraformer-wkt-parser@1.2.1/terraformer-wkt-parser.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+    var geoJsonLayer = null;
+    $(document).ready(function() {
+      
+      function objToString(obj) {
+        let str = '';
+        for (const [key, value] of Object.entries(obj)) {
+          str += `${key}: ${value}<br>`; // キーと値を結合し、改行を追加
+        }
+        return str.trim();
+      }
 
-          let latlon = [35.681236, 139.767125];
-          var map = L.map('map').setView(latlon, 13);
-          let attr1 = '国土地理院';
-          let attr2 = '国土数値情報';
-          let attr3 = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-          L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
-            attribution: [attr1, attr2].join(' | '),
-          }).addTo(map);
-          var marker = L.marker(latlon).addTo(map);
-          
-          $("#submitButton").click(function() {
-            let stationListStr = $("#stationListStr").val();
-            if (stationListStr) {
-              $('#loading').show();
-              let currentHostname = window.location.hostname;
-              let apiUrl = '';
-              if (
-                currentHostname === 'localhost' || 
-                currentHostname === '127.0.0.1' ||
-                currentHostname.startsWith('192.168.')
-              ) {
-                apiUrl = 'http://localhost:5000';
-              } else {
-                apiUrl = "https://us-central1-awesome-terra-234810.cloudfunctions.net/hello_http/";
-              }
-              $.get(
-                apiUrl,
-                { station_list_str: stationListStr },
-                function(data) {
-                  $("#result").text("station_name: " + data.station_name.toUpperCase());
-                  let wktGeometry = Terraformer.WKT.parse(data.center_4612_wkt);
-                  let latlng = [wktGeometry.coordinates[1], wktGeometry.coordinates[0]];
-                  marker.setLatLng(latlng).update();
-                  //map.setView(latlng, 13); // マーカーの位置に地図を移動
-                  if (geoJsonLayer){
-                    map.removeLayer(geoJsonLayer);
-                  }
-                  geoJsonLayer = addStations(map, data.stations_geojson);
-                }
-              ).always(function() {
-                $('#loading').hide();
-              }).fail(function() {
-                $("#result").text("エラーが発生しました。");
-              });
-            }
-          });
-
-          $("#debug-1").click(function() {
-            event.preventDefault();
-            $("#stationListStr").val("川崎、浦和");
-            $("#submitButton").click();
-          });
-
-          $("#stationListStr").keydown(function(event) {
-            if (event.keyCode == 13) { // 13はEnterキーのキーコード
-              event.preventDefault(); // フォームの自動送信を防ぐ
-              $("#submitButton").click(); // 送信ボタンのクリックイベントをトリガー
-            }
-          });
-
+      function addStations(map, geoJsonString) {
+        let blueIcon = L.divIcon({
+          className: 'custom-blue-icon', // カスタムクラス名
+          html: '<div style="background-color: blue; width: 12px; height: 12px; border-radius: 50%;' + 
+            'position: relative; left: -6px; top: -6px;"></div>', // 円形のHTML要素
+          iconSize: [12, 12],
+          iconAnchor: [6, 6]
         });
-    </script>
+        let layer = L.geoJSON(JSON.parse(geoJsonString), {
+          pointToLayer: function(feature, latlng) {
+            let marker = L.marker(latlng, { icon: blueIcon });
+            marker.on('add', function() {
+              marker.bindPopup(objToString(feature.properties));
+            });
+            return marker;
+          }
+        })
+        layer.addTo(map);
+        map.fitBounds(layer.getBounds());
+        return layer;
+      }
+      
+      let tokyostaLatlon = [35.681236, 139.767125];
+      var map = L.map('map').setView(tokyostaLatlon, 13);
+      let attr1 = '国土地理院';
+      let attr2 = '国土数値情報';
+      let attr3 = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+      L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+        attribution: [attr1, attr2].join(' | '),
+      }).addTo(map);
+      var marker = L.marker(tokyostaLatlon).addTo(map);
+      
+      $("#submitButton").click(function() {
+        let stationListStr = $("#stationListStr").val();
+        if (stationListStr) {
+          $('#loading').show();
+          let currentHostname = window.location.hostname;
+          let apiUrl = '';
+          if (
+            currentHostname === 'localhost' || 
+            currentHostname === '127.0.0.1' ||
+            currentHostname.startsWith('192.168.')
+          ) {
+            apiUrl = 'http://localhost:5000';
+          } else {
+            apiUrl = "https://us-central1-awesome-terra-234810.cloudfunctions.net/hello_http/";
+          }
+          $.get(
+          apiUrl,
+          { station_list_str: stationListStr },
+          function(data) {
+            $("#result").text("station_name: " + data.station_name.toUpperCase());
+            let wktGeometry = Terraformer.WKT.parse(data.center_4612_wkt);
+            let latlng = [wktGeometry.coordinates[1], wktGeometry.coordinates[0]];
+            marker.setLatLng(latlng).update();
+            //map.setView(latlng, 13); // マーカーの位置に地図を移動
+            if (geoJsonLayer){
+              map.removeLayer(geoJsonLayer);
+            }
+            geoJsonLayer = addStations(map, data.stations_geojson);
+          }
+          ).always(function() {
+            $('#loading').hide();
+          }).fail(function() {
+            $("#result").text("エラーが発生しました。");
+          });
+        }
+      });
+      
+      $("#debug-1").click(function() {
+        event.preventDefault();
+        $("#stationListStr").val("川崎、浦和");
+        $("#submitButton").click();
+      });
+      
+      $("#stationListStr").keydown(function(event) {
+        if (event.keyCode == 13) { // 13はEnterキーのキーコード
+          event.preventDefault(); // フォームの自動送信を防ぐ
+          $("#submitButton").click(); // 送信ボタンのクリックイベントをトリガー
+        }
+      });
+      
+    });
+  </script>
 </head>
 <body>
     <h1>集合場所の駅を検討する</h1>
