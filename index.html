@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API結果表示</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#submitButton").click(function() {
+                let stationListStr = $("#stationListStr").val();
+                if (stationListStr) {
+                    $.get(
+                      "https://us-central1-awesome-terra-234810.cloudfunctions.net/hello_http/", 
+                      { station_list_str: stationListStr },
+                      function(data) {
+                        $("#result").text("station_name: " + data.station_name.toUpperCase());
+                      }
+                    );
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>API結果表示</h1>
+    <label for="stationListStr">station_list_str:</label>
+    <input type="textbox" id="stationListStr" style="width: 300px;">
+    <button id="submitButton">Submit</button>
+    <div id="result"></div>
+</body>
+</html>
