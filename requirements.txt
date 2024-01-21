@@ -1,0 +1,8 @@
+contextily
+Flask
+functions_framework
+geopandas
+matplotlib
+pandas
+pyproj
+Shapely

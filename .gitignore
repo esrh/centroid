@@ -1,0 +1,5 @@
+*.bat
+.vscode
+/__pycache__
+settings.py
+*.ipynb
