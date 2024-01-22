@@ -1,4 +1,3 @@
-import json
 from flask import Flask, render_template, request, jsonify
 from markupsafe import escape
 import functions_framework
@@ -10,14 +9,14 @@ app.template_folder = '.'  # 新しいテンプレートフォルダのパスを
 
 @app.route('/')
 def index():
-    return hello_http(request)
+    return entry(request)
 
 @app.route('/testpage/')
 def testpage():
     return render_template('index.html')
 
 @functions_framework.http
-def hello_http(request):
+def entry(request):
     request_json = request.get_json(silent=True)
     request_args = request.args
     if request_json and "name" in request_json:

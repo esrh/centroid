@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>待ち合わせに最適な駅</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -60,10 +63,11 @@
           let apiUrl = '';
           if (
             currentHostname === 'localhost' || 
-            currentHostname === '127.0.0.1' ||
-            currentHostname.startsWith('192.168.')
+            currentHostname === '127.0.0.1'
           ) {
             apiUrl = 'http://localhost:5000';
+          } else if(currentHostname.startsWith('192.168.')){
+            apiUrl = 'http://' + currentHostname + ':8080';
           } else {
             apiUrl = "https://us-central1-awesome-terra-234810.cloudfunctions.net/hello_http/";
           }

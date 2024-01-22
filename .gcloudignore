@@ -12,3 +12,5 @@
 # below:
 .git
 node_modules
+data/stations_within_tokyo.geojson
+data/stations.geojson
