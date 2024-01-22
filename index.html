@@ -56,24 +56,23 @@
       var marker = L.marker(tokyostaLatlon).addTo(map);
       
       $("#submitButton").click(function() {
-        let stationListStr = $("#stationListStr").val();
-        if (stationListStr) {
-          $('#loading').show();
-          let currentHostname = window.location.hostname;
-          let apiUrl = '';
-          if (
-            currentHostname === 'localhost' || 
-            currentHostname === '127.0.0.1'
-          ) {
-            apiUrl = 'http://localhost:5000';
-          } else if(currentHostname.startsWith('192.168.')){
-            apiUrl = 'http://' + currentHostname + ':8080';
-          } else {
-            apiUrl = "https://us-central1-awesome-terra-234810.cloudfunctions.net/hello_http/";
-          }
-          $.get(
+        $('#loading').show();
+        let currentHostname = window.location.hostname;
+        let apiUrl = "https://us-central1-awesome-terra-234810.cloudfunctions.net/hello_http/";
+        if (
+        currentHostname === 'localhost' || 
+        currentHostname === '127.0.0.1'
+        ) {
+          apiUrl = 'http://localhost:5000';
+        } else if(currentHostname.startsWith('192.168.')){
+          apiUrl = 'http://' + currentHostname + ':8080';
+        }
+        $.get(
           apiUrl,
-          { station_list_str: stationListStr },
+          {
+            station_list_str: $("#stationListStr").val(),
+            in_tokyo: !$("#in-tokyo").is(":checked")
+          },
           function(data) {
             $("#result").text("station_name: " + data.station_name.toUpperCase());
             let wktGeometry = Terraformer.WKT.parse(data.center_4612_wkt);
@@ -85,12 +84,12 @@
             }
             geoJsonLayer = addStations(map, data.stations_geojson);
           }
-          ).always(function() {
-            $('#loading').hide();
-          }).fail(function() {
-            $("#result").text("エラーが発生しました。");
-          });
-        }
+        ).always(function() {
+          $('#loading').hide();
+        }).fail(function() {
+          $("#result").text("エラーが発生しました。");
+        });
+        
       });
       
       $("#debug-1").click(function() {
@@ -115,11 +114,13 @@
     <br>
     <a href="" id="debug-1">例：川崎、浦和</a>
     <br>
-    <input type="textbox" id="stationListStr" style="width: 70%;">
+    <input id="stationListStr" style="width: 70%;">
     <button id="submitButton">Submit</button>
-    <div>現在、関東圏の駅のみの対応となっています。</div>
     <div id="result"></div>
     <div id="loading" style="display: none;">Loading...</div>
+    <div>現在、基本的に関東圏の駅のみの対応となっています</div>
+    <label for="in-tokyo">関東圏外の駅を検索に含める：ベータ</label>
+    <input type="checkbox" id="in-tokyo">
     <div id="map" style="width: 100%; height: 40vh;"></div>
     <div>おことわり：このツールはサーバー側にデータを送信しますが、そこでのデータの蓄積など、処理以外でのデータ利用は一切行っていません。</div>
     <div>結果は東京周辺に適合する座標系で導き出すため、関東圏以外では若干不正確になります</div>

@@ -1,10 +1,10 @@
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import Point
+from shapely.geometry import Point, MultiPoint
 from pyproj import Transformer
 import settings
 
-def find_center_station(station_list_str: str, in_tokyo: bool =True) -> dict:
+def find_center_station(station_list_str: str = '新宿、横浜', in_tokyo: bool =True) -> dict:
     for split_str in [',', ' ', '　', '、']:
         if split_str in station_list_str:
             station_list = station_list_str.split(split_str)
@@ -17,9 +17,9 @@ def find_center_station(station_list_str: str, in_tokyo: bool =True) -> dict:
         stations = gpd.read_file('data/stations.geojson', crs=4612).to_crs(2451)
     ans_stations = pd.DataFrame()
     for station in station_list:
-        ans_stations = pd.concat([ans_stations, stations[stations.N02_005 == station].head()])
+        ans_stations = pd.concat([ans_stations, stations[stations.N02_005 == station].head(1)])
     ans_stations.loc[:, 'geometry'] = ans_stations.geometry.centroid
-    hiningen_center = Point(ans_stations.unary_union.centroid)
+    hiningen_center = MultiPoint(ans_stations.geometry.to_list()).centroid
     transformer = Transformer.from_crs("EPSG:2451", "EPSG:4612", always_xy=True)
     transformed_longitude, transformed_latitude = transformer.transform(hiningen_center.x, hiningen_center.y)
     return dict(
@@ -48,9 +48,9 @@ def drop_duplicate_station(gdf):
         gdf_filtered.drop(columns=['duplicate'], inplace=True)
 
 def main():
-    res = find_center_station(settings.sample_station_list)
-    # res = find_center_station('川崎、天王寺')
-    print(res.get('station_name'))
+    res = find_center_station(settings.sample_station_list, in_tokyo=True)
+    # res = find_center_station('川崎、天王寺', in_tokyo=False)
+    print(res.get('station_name'), res.get('center_4612_wkt'))
 
 if __name__ == '__main__':
     main()

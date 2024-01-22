@@ -28,9 +28,10 @@ def entry(request):
     res_dict = dict(
         testmsg=f"Hello {escape(name)}!"
     )
+    
     res_dict.update(stationapi.find_center_station(
-        request.args.get('station_list_str', default = '立川、新宿', type = str),
-        request.args.get('in_tokyo', default = True, type = bool)
+        station_list_str=request.args.get('station_list_str', default = '立川、新宿', type = str),
+        in_tokyo=True if request.args.get('in_tokyo', default = 'true', type = str) == 'true' else False
     ))
     response = jsonify(res_dict)
     response.headers.add('Access-Control-Allow-Origin', '*')
